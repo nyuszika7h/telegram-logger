@@ -2,6 +2,10 @@
 api_id =
 api_hash = ""
 
+log_stdout = true
+# log_to_file = "telegram.log"
+# log_colors = false
+
 # Only enable in chats with the given IDs.
 #
 # If this is empty, it will be enabled in all chats except `disabled_chats`,

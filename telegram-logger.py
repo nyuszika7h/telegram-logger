@@ -6,6 +6,7 @@ from datetime import datetime
 import toml
 from telethon import TelegramClient, events
 from telethon.tl.types import User
+from os.path import isfile
 
 
 RESET = '\x1b[0m'
@@ -24,6 +25,36 @@ DB_PATH = 'data.sqlite3'
 
 
 config = toml.load('config.toml')
+
+def write_to_file(text, end = '\n'):
+    with open(log_filename,'a+', encoding = 'utf-8-sig') as f:
+        f.write(text+end)
+        f.close()
+        
+ltf = False
+log_colors = True
+log_stdout = config.get('log_stdout',  True)
+
+if 'log_to_file' in config:
+    print('Your message log will be saved to the specified file.')
+    ltf = True
+    log_filename = config.get('log_to_file')
+    
+if 'log_colors' in config:
+    log_colors = config.get('log_colors')
+    if log_colors is False:
+        print('Logging without colors as desired')
+        RESET = ''
+        BOLD = ''
+        DIM = ''
+        RED = ''
+        GREEN = ''
+        YELLOW = ''
+        BLUE = ''
+        MAGENTA = ''
+        CYAN = ''
+        WHITE = ''
+        GRAY = ''
 
 client = TelegramClient('telegram-logger', config['api_id'], config['api_hash'])
 client.start()
@@ -96,7 +127,10 @@ async def on_new_message(event):
     if user:
         out += f' {RESET}{BOLD}{user_display}'
     out += f' {RESET}{text}{RESET}'
-    print(out)
+    if ltf:
+        write_to_file(out)
+    if log_stdout is True:
+        print(out)
 
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
@@ -169,7 +203,10 @@ async def on_message_edited(event):
         out += f'\n{RESET}-{RED}{old_text} {RESET}\n+{GREEN}{text}{RESET}'
     else:
         out += f' {GREEN}{text}{RESET}'
-    print(out)
+    if ltf:
+        write_to_file(out)
+    if log_stdout is True:
+        print(out)
 
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
@@ -253,7 +290,10 @@ async def on_message_deleted(event):
         if old_text:
             out += f' {RESET}{RED}{old_text}'
         out += RESET
-        print(out)
+        if ltf:
+            write_to_file(out)
+        if log_stdout is True:
+            print(out)
 
         with sqlite3.connect(DB_PATH) as conn:
             c = conn.cursor()
@@ -285,4 +325,12 @@ with sqlite3.connect(DB_PATH) as conn:
     """)
 
 print('Listening for messages')
+if ltf:
+    if isfile(log_filename):
+        with open(log_filename) as f:
+            lines = f.read().split('\n')
+        
+        print(f'Resuming on line {len(lines)+2}...')
+    else:
+        print(f'Creating a new log file..')
 client.run_until_disconnected()

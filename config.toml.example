@@ -14,8 +14,14 @@ disabled_chats = []
 # Whether to save received media.
 save_media = true
 
-# Whether to log to files instead of stdout.
+# Whether to log to files
 log_to_file = false
+
+# Seperate logs for seperate chat_ids
+log_seperate_files = true
+
+# Whether to log to stdout
+log_stdout = true
 
 # Whether to use ANSI color codes for logs.
 # If not specified, the default is to use colors only when logging to stdout and it is a tty.
